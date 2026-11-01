@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCPLock</title>
+<meta name="description" content="A lockfile and PR check for MCP server configs: blocks risky .mcp.json changes and catches servers that silently change their tools.">
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1c1b19; --muted: #66625a; --card: #ffffff; --line: #e6e2d9;
+    --accent: #6d28d9; --accent-soft: #efe9fb; --warn: #b45309; --warn-soft: #fdf3e3; --code: #f3f1ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141413; --fg: #ecebe6; --muted: #a29e94; --card: #1d1d1b; --line: #2e2d2a;
+      --accent: #a78bfa; --accent-soft: #261c3d; --warn: #fbbf24; --warn-soft: #33270f; --code: #262522;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 48px 16px 64px; }
+  h1 { font-size: clamp(2rem, 6vw, 3rem); line-height: 1.1; margin: 0 0 12px; letter-spacing: -0.02em; }
+  h2 { font-size: 1.35rem; margin: 48px 0 12px; }
+  p.lead { font-size: 1.15rem; color: var(--muted); margin: 0 0 24px; max-width: 640px; }
+  a { color: var(--accent); }
+  .tag { display: inline-block; font-size: .8rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 2px 10px; border-radius: 99px; margin-bottom: 16px; }
+  .btns { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; border: 1px solid var(--line); color: var(--fg); background: var(--card); }
+  .btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  .card h3 { margin: 0 0 6px; font-size: 1rem; }
+  .card p { margin: 0; color: var(--muted); font-size: .95rem; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .88rem; }
+  code { background: var(--code); padding: 1px 5px; border-radius: 4px; }
+  pre { background: var(--code); border: 1px solid var(--line); border-radius: 10px; padding: 14px; overflow-x: auto; margin: 8px 0 0; }
+  pre code { background: none; padding: 0; }
+  .comment { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .comment .head { padding: 10px 16px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+  .comment .body { padding: 16px; }
+  .comment h4 { margin: 0 0 6px; font-size: 1.1rem; }
+  .score { color: var(--warn); }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: .92rem; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+  td.n, th.n { text-align: right; }
+  ul.missed { padding-left: 18px; margin: 6px 0 0; }
+  ul.missed li { margin: 4px 0; overflow-wrap: anywhere; }
+  .miss { background: var(--warn-soft); }
+  ol.steps { padding-left: 20px; }
+  ol.steps li { margin-bottom: 18px; }
+  footer { margin-top: 56px; color: var(--muted); font-size: .9rem; }
+  .sev { white-space: nowrap; }
+  td code { overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<main>
+  <span class="tag">GitHub Action · CLI · Free and open source</span>
+  <h1>A lockfile for your MCP servers</h1>
+  <p class="lead">MCPLock checks <code>.mcp.json</code>, <code>.cursor/mcp.json</code> and <code>.vscode/mcp.json</code> in every PR, blocks risky settings, and fails the check when a server or its tools change without review.</p>
+  <div class="btns">
+    <a class="btn primary" href="https://github.com/rahulcs754/mcplock#how-to-use-it">Add to your repo</a>
+    <a class="btn" href="https://github.com/rahulcs754/mcplock">View on GitHub</a>
+  </div>
+
+  <h2>Why</h2>
+  <div class="grid">
+    <div class="card"><h3>Configs run code</h3><p>Open the repo in Claude Code, Cursor or VS Code and every server in the config starts on your laptop, with your keys.</p></div>
+    <div class="card"><h3>One line is enough</h3><p>A PR that swaps a package, adds <code>bash -c</code>, or turns on <code>autoApprove</code> looks harmless in review.</p></div>
+    <div class="card"><h3>Rug pulls</h3><p>A server can change its tools or hide instructions in a description later. No file in your repo changes.</p></div>
+    <div class="card"><h3>Safe in CI</h3><p>MCPLock only starts servers already approved on the base branch. A PR cannot make CI run a new command.</p></div>
+  </div>
+
+  <h2>What you get on the PR</h2>
+  <div class="comment">
+    <div class="head">github-actions commented</div>
+    <div class="body">
+      <h4>❌ MCPLock: 6 problems in MCP configs</h4>
+      <div>Scanned 1 file and 5 servers: <code>.mcp.json</code>.</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Rule</th><th>Server</th><th>Problem</th></tr></thead>
+          <tbody>
+            <tr class="miss"><td class="sev">🔴</td><td>MCP002 Unpinned package</td><td><code>playwright</code></td><td><code>npx @playwright/mcp@latest</code> runs whatever version is newest today.</td></tr>
+            <tr class="miss"><td class="sev">🔴</td><td>MCP001 Auto-approve</td><td><code>db</code></td><td>Tools run with no human approval: query, execute.</td></tr>
+            <tr class="miss"><td class="sev">🔴</td><td>MCP003 Raw shell</td><td><code>db</code></td><td>Runs <code>bash -c "cd tools &amp;&amp; npx -y some-db-mcp"</code>.</td></tr>
+            <tr class="miss"><td class="sev">🔴</td><td>MCP004 Secret in config</td><td><code>docs</code></td><td><code>headers.Authorization</code> holds a Bearer credential.</td></tr>
+            <tr><td class="sev">🟠</td><td>MCP005 Plain http</td><td><code>docs</code></td><td>Remote server uses <code>http://</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <strong>This PR changes mcp.lock</strong> (vs <code>origin/main</code>). Please review each server before merging:
+      <ul class="missed">
+        <li><code>.mcp.json → db</code>: Added to mcp.lock.</li>
+        <li><code>.mcp.json → memory</code>: Tool list changed (changed: <code>read_graph</code>).</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>How to use it</h2>
+  <ol class="steps">
+    <li><strong>Create the lock</strong> on your machine and commit it:
+<pre><code>npx github:rahulcs754/mcplock lock --probe
+git add mcp.lock &amp;&amp; git commit -m "Add mcp.lock"</code></pre></li>
+    <li><strong>Add the workflow</strong> <code>.github/workflows/mcplock.yml</code>:
+<pre><code>on: pull_request
+permissions: { contents: read, pull-requests: write }
+jobs:
+  mcplock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: rahulcs754/mcplock@main
+        with: { probe: false }</code></pre></li>
+    <li><strong>Protect the lock</strong> with CODEOWNERS: <code>/mcp.lock @your-org/security</code></li>
+  </ol>
+
+  <h2>How it works</h2>
+  <div class="grid">
+    <div class="card"><h3>1. Scan</h3><p>Reads every known MCP config and settings file. Comments and trailing commas are fine.</p></div>
+    <div class="card"><h3>2. Check rules</h3><p>Auto-approve, unpinned packages, shell scripts, secrets, plain http.</p></div>
+    <div class="card"><h3>3. Lock</h3><p><code>mcp.lock</code> stores a sha256 of each server config and each tool. Never secret values.</p></div>
+    <div class="card"><h3>4. Compare</h3><p>Fails on any drift, and lists every lock change in the PR so a reviewer can approve it.</p></div>
+  </div>
+
+  <footer>Built by <a href="https://github.com/rahulcs754">rahulcs754</a> · MIT license</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,27 @@
+name: MCPLock
+on:
+  pull_request:
+    paths:
+      - '.mcp.json'
+      - '.cursor/mcp.json'
+      - '.vscode/mcp.json'
+      - '.vscode/settings.json'
+      - '.claude/settings.json'
+      - '.gemini/settings.json'
+      - 'mcp.lock'
+      - 'mcplock.json'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  mcplock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # needed to read mcp.lock on the base branch
+      - uses: rahulcs754/mcplock@main
+        with:
+          probe: false # true = also check tool lists (starts servers approved on base)
