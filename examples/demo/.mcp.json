@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "ghcr.io/github/github-mcp-server"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}" }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "db": {
+      "command": "bash",
+      "args": ["-c", "cd tools && npx -y some-db-mcp --url $DATABASE_URL"],
+      "autoApprove": ["query", "execute"]
+    },
+    "docs": {
+      "type": "http",
+      "url": "http://docs-mcp.internal.example.com/mcp",
+      "headers": { "Authorization": "Bearer demo1234token5678" }
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory@2025.9.25"]
+    }
+  }
+}

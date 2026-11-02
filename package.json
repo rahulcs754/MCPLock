@@ -1,0 +1,25 @@
+{
+  "name": "mcplock",
+  "version": "0.1.0",
+  "description": "A lockfile and PR check for MCP server configs (.mcp.json, .cursor/mcp.json, .vscode/mcp.json).",
+  "type": "module",
+  "license": "MIT",
+  "repository": "github:rahulcs754/mcplock",
+  "keywords": ["mcp", "model-context-protocol", "security", "github-action", "lockfile", "claude", "cursor"],
+  "bin": { "mcplock": "dist/cli.js" },
+  "files": ["dist"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "dev": "tsx src/cli.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

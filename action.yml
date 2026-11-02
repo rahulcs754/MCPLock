@@ -1,0 +1,60 @@
+name: MCPLock
+description: Lockfile and PR check for MCP server configs (.mcp.json, .cursor/mcp.json, .vscode/mcp.json).
+author: rahulcs754
+branding:
+  icon: lock
+  color: purple
+
+inputs:
+  command:
+    description: check (default) or scan.
+    required: false
+    default: check
+  probe:
+    description: Start servers already approved on the base branch and compare their tool lists with mcp.lock.
+    required: false
+    default: 'false'
+  base:
+    description: Git ref of the PR base. Default is origin/<PR base branch>.
+    required: false
+  fail-on:
+    description: Lowest severity that fails the check (high, medium, low, none). Default high, or mcplock.json.
+    required: false
+  comment:
+    description: Post or update one PR comment with the report.
+    required: false
+    default: 'true'
+  working-directory:
+    description: Folder that holds the MCP configs and mcp.lock.
+    required: false
+    default: '.'
+  github-token:
+    description: Token used to post the PR comment.
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Run MCPLock
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        ML_COMMAND: ${{ inputs.command }}
+        ML_PROBE: ${{ inputs.probe }}
+        ML_BASE: ${{ inputs.base }}
+        ML_FAIL_ON: ${{ inputs.fail-on }}
+        ML_COMMENT: ${{ inputs.comment }}
+      run: |
+        args=("$ML_COMMAND")
+        base="$ML_BASE"
+        if [ -z "$base" ] && [ -n "$GITHUB_BASE_REF" ]; then
+          git fetch --no-tags --depth=1 origin "$GITHUB_BASE_REF" 2>/dev/null || true
+          base="origin/$GITHUB_BASE_REF"
+        fi
+        [ "$ML_COMMAND" = "check" ] && [ -n "$base" ] && args+=(--base "$base")
+        [ "$ML_PROBE" = "true" ] && args+=(--probe)
+        [ -n "$ML_FAIL_ON" ] && args+=(--fail-on "$ML_FAIL_ON")
+        [ "$ML_COMMENT" = "true" ] && args+=(--comment)
+        node "$GITHUB_ACTION_PATH/dist/cli.js" "${args[@]}"

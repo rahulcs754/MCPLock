@@ -1,0 +1,23 @@
+name: Self check
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Demo config must fail
+        run: |
+          if node dist/cli.js check --root examples/demo; then
+            echo "::error::examples/demo should fail MCPLock"; exit 1
+          fi
+      - name: Run the action on this repo
+        uses: ./
+        with:
+          comment: 'false'

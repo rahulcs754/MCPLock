@@ -1,0 +1,10 @@
+{
+  // Lowest severity that fails the check: high | medium | low | none
+  "failOn": "high",
+  // Findings your team reviewed and accepts
+  "allow": [
+    { "rule": "MCP002", "server": "playwright", "reason": "Pinned by Renovate in a separate job" }
+  ],
+  // Extra files with the same shape as .mcp.json
+  "include": ["tools/mcp.json"]
+}
