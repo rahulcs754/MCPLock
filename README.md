@@ -6,7 +6,7 @@
 · [Website](https://rahulcs754.github.io/mcplock/)
 
 ## Why
-MCP configs in a repo start commands on every teammate's laptop when they open the project in Claude Code, Cursor or VS Code. One changed line, an unpinned `npx` package, or a server that quietly changes its tools can take over a developer machine. Nobody reviews these files like code. MCPLock makes them reviewable, the same way `package-lock.json` did for packages. More in [docs/RESEARCH.md](docs/RESEARCH.md).
+MCP configs in a repo start commands on every teammate's laptop when they open the project in Claude Code, Cursor or VS Code. One changed line, an unpinned `npx` package, or a server that quietly changes its tools can take over a developer machine. Nobody reviews these files like code. MCPLock makes them reviewable, the same way `package-lock.json` did for packages.
 
 ## Benefits
 - **Blocks risky configs in PRs.** Auto-approve, unpinned packages, `bash -c` scripts, secrets in `env`, plain `http://`.
